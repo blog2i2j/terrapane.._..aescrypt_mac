@@ -1,0 +1,86 @@
+#!/bin/bash
+#
+# update_app
+# Copyright (C) 2024
+# Terrapane Corporation
+#
+# This script should be run from within the directory containing this script.
+# It will look for the following:
+#     ../aescrypt_cli/build/src/aescrypt - the AES Crypt executable
+#     ../AES Crypt.app - the application package created from the Script Editor
+#
+
+# Set the root of the Terrapane source repositories
+if [ -z "${TERRAPANE_SOURCE_URI}" ] ; then
+    TERRAPANE_SOURCE_URI=https://github.com/terrapane
+fi
+
+aescrypt_repo="${TERRAPANE_SOURCE_URI}/aescrypt_cli.git"
+aescrypt_binary="build/aescrypt_cli/build/src/aescrypt"
+aescrypt_app="../AES Crypt.app"
+
+# Switch directories to where this script resides
+cd $( dirname "${BASH_SOURCE[0]}" ) || exit
+
+# Ensure cmake is installed
+which cmake >/dev/null 2>/dev/null || {
+    echo cmake is not install, but is required
+    exit
+}
+
+# Ensure make is installed
+which make >/dev/null 2>/dev/null || {
+    echo make is not install, but is required
+    exit
+}
+
+# Ensure git is installed
+which git >/dev/null 2>/dev/null || {
+    echo git is not install, but is required
+    exit
+}
+
+# Build the AES Crypt executable
+mkdir -p build || exit
+git clone --depth=1 $aescrypt_repo build/aescrypt_cli
+cd build/aescrypt_cli
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+cd ../..
+
+# Ensure the AES Crypt executable is in place
+if [ ! -f "$aescrypt_binary" ] ; then
+    echo "The AES Crypt CLI application did not appear to build"
+    exit
+fi
+
+# Ensure there isn't aleady an AES Crypt App file in the parent directory
+if [ -e "$aescrypt_app" ] ; then
+    echo "The AES Crypt application already exists in $aescrypt_app"
+    exit
+fi
+
+# Compile the application
+osacompile -o "$aescrypt_app" src/aescrypt-gui.applescript || exit
+
+# Ensure the AES Crypt App was created
+if [ ! -e "$aescrypt_app" ] ; then
+    echo "The AES Crypt application failed to build in $aescrypt_app"
+    exit;
+fi
+
+# Notify user that files are being put in place
+echo Updating the application...
+
+# Copy the plist file into place
+cp src/Info.plist "$aescrypt_app"/Contents/ || exit
+
+# Put the application icons into place
+cp resources/aescrypt_lock.icns "$aescrypt_app"/Contents/Resources/droplet.icns || exit
+cp resources/aescrypt_lock.icns "$aescrypt_app"/Contents/Resources/ || exit
+cp resources/aescrypt_paper.icns "$aescrypt_app"/Contents/Resources/ || exit
+
+# Put the AES Crypt binary into place
+cp $aescrypt_binary "$aescrypt_app"/Contents/MacOS/ || exit
+
+echo The application package has been updated
