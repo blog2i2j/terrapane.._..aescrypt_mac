@@ -41,6 +41,10 @@ which git >/dev/null 2>/dev/null || {
 }
 
 # Build the AES Crypt executable
+if [ -d build ] ; then
+    echo "The ./build directory exists; remove it"
+    exit
+fi
 mkdir -p build || exit
 git clone --depth=1 $aescrypt_repo build/aescrypt_cli
 cd build/aescrypt_cli
@@ -51,12 +55,14 @@ cd ../..
 # Ensure the AES Crypt executable is in place
 if [ ! -f "$aescrypt_binary" ] ; then
     echo "The AES Crypt CLI application did not appear to build"
+    rm -fr build
     exit
 fi
 
 # Ensure there isn't aleady an AES Crypt App file in the parent directory
 if [ -e "$aescrypt_app" ] ; then
     echo "The AES Crypt application already exists in $aescrypt_app"
+    rm -fr build
     exit
 fi
 
@@ -66,6 +72,7 @@ osacompile -o "$aescrypt_app" src/aescrypt-gui.applescript || exit
 # Ensure the AES Crypt App was created
 if [ ! -e "$aescrypt_app" ] ; then
     echo "The AES Crypt application failed to build in $aescrypt_app"
+    rm -fr build
     exit;
 fi
 
@@ -82,5 +89,6 @@ cp resources/aescrypt_paper.icns "$aescrypt_app"/Contents/Resources/ || exit
 
 # Put the AES Crypt binary into place
 cp $aescrypt_binary "$aescrypt_app"/Contents/MacOS/ || exit
+rm -fr build
 
 echo The application package has been updated
