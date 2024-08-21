@@ -73,7 +73,7 @@
 	<key>CFBundleIconFile</key>
 	<string>droplet</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.apple.ScriptEditor.id.AES-Crypt</string>
+	<string>com.terrapane.aescrypt-droplet</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
@@ -84,10 +84,15 @@
 	<string>4.0</string>
 	<key>CFBundleSignature</key>
 	<string>dplt</string>
+	<key>SMPrivilegedExecutables</key>
+	<dict>
+		<key>com.terrapane.aescrypt</key>
+		<string>Contents/MacOS/aescrypt</string>
+	</dict>
 	<key>LSMinimumSystemVersionByArchitecture</key>
 	<dict>
 		<key>x86_64</key>
-		<string>10.6</string>
+		<string>10.7</string>
 	</dict>
 	<key>LSRequiresCarbon</key>
 	<true/>
