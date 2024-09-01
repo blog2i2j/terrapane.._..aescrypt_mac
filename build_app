@@ -10,6 +10,9 @@
 #     ../AES Crypt.app - the application package created from the Script Editor
 #
 
+# Specify which version of AES Crypt to build (git tag)
+AES_CRYPT_VERSION=v4.0.1
+
 # Set the root of the Terrapane source repositories
 if [ -z "${TERRAPANE_SOURCE_URI}" ] ; then
     TERRAPANE_SOURCE_URI=https://github.com/terrapane
@@ -46,7 +49,8 @@ if [ -d build ] ; then
     exit
 fi
 mkdir -p build || exit
-git clone --depth=1 $aescrypt_repo build/aescrypt_cli
+git clone --depth=1 --branch=$AES_CRYPT_VERSION --single-branch \
+          $aescrypt_repo build/aescrypt_cli
 cd build/aescrypt_cli
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel
