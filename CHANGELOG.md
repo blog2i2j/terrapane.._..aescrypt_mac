@@ -1,6 +1,6 @@
 # Change Log
 
-v4.0.3 (not yet released)
+v4.0.3
     - Updated the AES Crypt CLI version to the latest
 
 v4.0.2
