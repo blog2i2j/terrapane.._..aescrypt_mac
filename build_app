@@ -59,7 +59,9 @@ mkdir -p build || exit
 git clone --depth=1 --branch=$AES_CRYPT_VERSION --single-branch \
           $aescrypt_repo build/aescrypt_cli
 cd build/aescrypt_cli
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake -S . -B build \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
 cmake --build build --parallel
 cd ../..
 
