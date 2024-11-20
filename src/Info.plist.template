@@ -81,7 +81,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>4.0</string>
+	<string>AESCRYPT_VERSION_TAG</string>
 	<key>CFBundleSignature</key>
 	<string>dplt</string>
 	<key>SMPrivilegedExecutables</key>

@@ -86,7 +86,7 @@ fi
 echo Updating the application...
 
 # Copy the plist file into place
-cp src/Info.plist "$aescrypt_app"/Contents/ || exit
+cat src/Info.plist.template | sed s/AESCRYPT_VERSION_TAG/${AES_CRYPT_VERSION#v}/ > "$aescrypt_app"/Contents/Info.plist || exit
 
 # Put the application icons into place
 cp resources/aescrypt_lock.icns "$aescrypt_app"/Contents/Resources/droplet.icns || exit
