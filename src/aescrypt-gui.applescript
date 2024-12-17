@@ -118,7 +118,7 @@ on PromptPassword(mode)
 			try
 				set user_password to text returned of (display dialog message with title "AES Crypt" default answer "" buttons {"Cancel", "OK"} default button "OK" with icon file icon_file with hidden answer)
 			on error
-				-- Generally, the user pressed
+				-- Generally, the user pressed Cancel
 				return ""
 			end try
 			if user_password is equal to "" then
