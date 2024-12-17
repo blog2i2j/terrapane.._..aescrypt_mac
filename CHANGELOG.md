@@ -1,5 +1,14 @@
 # Change Log
 
+v4.1.2
+
+- Fixed an issue that prevented the program from running on macOS 12.7
+  and older systems
+
+v4.1.1
+
+- No changes affecting Mac, so never released
+
 v4.1.0
 
 - Updated the AES Crypt CLI version to the latest
