@@ -15,7 +15,7 @@ on run
 end run
 
 -- Handler to run when files are dropped on to the lock icon
-on open (file_list)
+on open(file_list)
 	try
 		-- Ensure that all items dropped are files
 		if not VerifyFiles(file_list) then
@@ -42,7 +42,7 @@ on open (file_list)
 	end try
 end open
 
--- Handler to report errors to the user
+-- Report errors to the user
 on ReportError(message)
 	set script_location to (path to me) as text
 	set icon_file to script_location & "Contents:Resources:aescrypt_lock.icns"
@@ -145,13 +145,56 @@ on PromptPassword(mode)
 	end repeat
 
 	return user_password
-
 end PromptPassword
 
--- Routine to perform encrypt or decrypt operations
+-- Get the user's locale information
+on GetUserLocale()
+	try
+		set user_locale to user locale of (system info)
+	on error
+		return ""
+	end try
+
+	return user_locale
+end GetUserLocale
+
+-- Get character encoding for AES Crypt (User's locale + UTF-8)
+on GetCharacterEncoding()
+	try
+		-- Get the list of locales
+		set locale_list to do shell script "locale -a"
+
+		-- Get the user's locale from the system, assuming UTF-8 for encoding
+		set user_locale to GetUserLocale() & ".UTF-8"
+
+		-- Able to get the locale string (more than just the .UTF-8 part)?
+		if user_locale is not equal to ".UTF-8" then
+			-- If the user's locale is in the list, use it
+			if locale_list contains user_locale then
+				return user_locale
+			end if
+		end if
+
+		-- Attempt to fall back to en_US.UTF-8 and use it if available
+		set user_locale to "en_US.UTF-8"
+		if locale_list contains user_locale then
+			return user_locale
+		end if
+	on error
+		return ""
+	end try
+
+	return ""
+end GetCharacterEncoding
+
+-- Perform encryption or decryption operations
 on PerformOperations(mode, file_list, password)
-	-- We must ensure the locale is UTF-8
-	set user_locale to user locale of (system info) & ".UTF-8"
+	-- Determine the locale to use
+	set user_locale to GetCharacterEncoding()
+	if user_locale is equal to "" then
+		ReportError("Unable to determine a suitable character encoding. Contact support for assistance. (" & GetUserLocale() & ")")
+		return
+	end if
 
 	set script_location to (path to me) as text
 	set aescrypt to quoted form of (POSIX path of (script_location & "Contents:MacOS:aescrypt"))
