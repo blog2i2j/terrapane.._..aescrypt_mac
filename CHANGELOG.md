@@ -1,5 +1,10 @@
 # Change Log
 
+v4.1.2.1
+
+- Addressed a compatibility issue for some systems with a mix of English
+  and non-English language settings.
+
 v4.1.2
 
 - Fixed an issue that prevented the program from running on macOS 12.7
