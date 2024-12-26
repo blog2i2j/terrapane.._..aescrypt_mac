@@ -1,9 +1,15 @@
 # Change Log
 
+v4.1.2.2
+
+- Made some improvements to the password dialog logic
+- Made it possible for AES Crypt to be an "Open With" option
+  for most common file types
+
 v4.1.2.1
 
 - Addressed a compatibility issue for some systems with a mix of English
-  and non-English language settings.
+  and non-English language settings
 
 v4.1.2
 

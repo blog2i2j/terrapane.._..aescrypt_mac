@@ -11,11 +11,21 @@ on run
 	activate
 
 	-- Report that one cannot open the application without a file list
-	ReportError("To encrypt or decrypt files with AES Crypt, drag and drop files onto application lock icon. You may place the lock icon on the dock for convenience.")
+	ReportError("To encrypt or decrypt files with AES Crypt, drag and drop " & ¬
+				"files onto application lock icon. You may place the lock " & ¬
+				"icon on the dock for convenience. Alternatively, right-" & ¬
+				"click on a file and select \"Open With\" and choose " & ¬
+				"\"AES Crypt\".")
 end run
 
 -- Handler to run when files are dropped on to the lock icon
 on open(file_list)
+	local mode
+	local user_password
+
+	-- Ensure the application is brought to the front
+	activate
+
 	try
 		-- Ensure that all items dropped are files
 		if not VerifyFiles(file_list) then
@@ -35,7 +45,7 @@ on open(file_list)
 			return
 		end if
 
-		-- Iterate over all files, encrypting or decrpyting as appropriate
+		-- Iterate over all files, encrypting or decrypting as appropriate
 		PerformOperations(mode, file_list, user_password)
 	on error e
 		ReportError("Unexpected error: " & (e as text))
@@ -44,29 +54,42 @@ end open
 
 -- Report errors to the user
 on ReportError(message)
+	local script_location
+	local icon_file
+
 	set script_location to (path to me) as text
 	set icon_file to script_location & "Contents:Resources:aescrypt_lock.icns"
 
-	display dialog message with title "AES Crypt" buttons "OK" default button "OK" with icon file icon_file
+	display dialog message ¬
+		with title "AES Crypt" ¬
+		buttons "OK" ¬
+		default button "OK" ¬
+		with icon file icon_file
 end ReportError
 
 -- Ensure all of the given names are regular files
 on VerifyFiles(file_list)
+	local file_list_item
+	local posix_path
+	local file_type
+
 	repeat with file_list_item in file_list
 		set posix_path to quoted form of (POSIX path of file_list_item)
 		set file_type to (do shell script "file -b -i " & posix_path)
-		if file_type is not "regular file" then
+		if file_type is not equal to "regular file" then
 			return false
 		end if
 	end repeat
 
 	return true
-
 end VerifyFiles
 
 -- Determine if encrypting/decrypting based on file names
 -- (Any list having a file no ending in .aes triggers encryption)
 on DetermineOperationalMode(file_list)
+	local normal_files
+	local aes_files
+
 	set normal_files to false
 	set aes_files to false
 
@@ -82,7 +105,8 @@ on DetermineOperationalMode(file_list)
 	end repeat
 
 	if normal_files is true and aes_files is true then
-		ReportError("Cannot process both AES Crypt and non-AES Crypt files at the same time.")
+		ReportError("Cannot process both AES Crypt and non-AES Crypt files " & ¬
+		            "at the same time.")
 		return ""
 	end if
 
@@ -94,17 +118,60 @@ on DetermineOperationalMode(file_list)
 	return "d"
 end DetermineOperationalMode
 
--- Prompts the user for a password, returning "" if the user cancels or no password given
-on PromptPassword(mode)
+-- Render the password dialog with the given message, returning the an empty
+-- string on error or if the user presses "Cancel"
+on PasswordDialog(message)
+	local script_location
+	local icon_file
+	local user_password
+
 	set script_location to (path to me) as text
 	set icon_file to script_location & "Contents:Resources:aescrypt_lock.icns"
-	set seeking_input to true
+	set user_password to ""
 
-	-- Loop until a password is acquired
-	repeat while seeking_input is true
-		set user_password to ""
-		set verify_passwird to ""
+	-- Repeatedly prompt for a password until provided or "Cancel" is pressed
+	repeat while user_password is equal to ""
+		try
+			set user_password to text returned of ( ¬
+				display dialog message with title "AES Crypt" ¬
+				default answer "" ¬
+				buttons {"Cancel", "OK"} ¬
+				default button "OK" ¬
+				with icon file icon_file ¬
+				with hidden answer)
+		on error e number error_number
+			if error_number is -128 then
+				-- User pressed "Cancel"
+				set user_password to ""
+				exit repeat
+			else
+				-- All other errors will render a message
+				ReportError("An error occurred: " & (e as text))
+				set user_password to ""
+				exit repeat
+			end if
+		end try
+		if user_password is equal to "" then
+			ReportError("A password must be provided.")
+		end if
+	end repeat
 
+	return user_password
+end PasswordDialog
+
+-- Prompts the user for a password, returning "" if the user clicks "Cancel"
+on PromptPassword(mode)
+	local script_location
+	local icon_file
+	local user_password
+	local verify_password
+
+	set script_location to (path to me) as text
+	set icon_file to script_location & "Contents:Resources:aescrypt_lock.icns"
+	set user_password to ""
+
+	-- Loop until a password is acquired or user cancels the password prompt
+	repeat while user_password is ""
 		-- Textual version of the mode to show the user
 		if mode is equal to "e" then
 			set mode_text to "encryption"
@@ -114,33 +181,22 @@ on PromptPassword(mode)
 		set message to "Enter password for " & mode_text
 
 		-- Render the dialog box and allow for the user to cancel
-		repeat while user_password is equal to ""
-			try
-				set user_password to text returned of (display dialog message with title "AES Crypt" default answer "" buttons {"Cancel", "OK"} default button "OK" with icon file icon_file with hidden answer)
-			on error
-				-- Generally, the user pressed Cancel
-				return ""
-			end try
-			if user_password is equal to "" then
-				ReportError("A password must be provided.")
-			end if
-		end repeat
+		set user_password to PasswordDialog(message)
+		if user_password is ""
+			exit repeat
+		end if
 
 		-- If encrypting, verify the user's password
 		if mode is equal to "e" then
-			try
-				set verify_password to text returned of (display dialog "Verify your password" with title "AES Crypt" default answer "" buttons {"Cancel", "OK"} default button "OK" with icon file icon_file with hidden answer)
-			on error
-				-- Generally, user pressed Cancel
-				return ""
-			end try
+			set verify_password to PasswordDialog("Verify the password")
+			if verify_password is ""
+				set user_password to ""
+				exit repeat
+			end if
 			if verify_password is not equal to user_password then
 				ReportError("The passwords entered do not match.")
-			else
-				set seeking_input to false
+				set user_password to ""
 			end if
-		else
-			set seeking_input to false
 		end if
 	end repeat
 
@@ -149,6 +205,8 @@ end PromptPassword
 
 -- Get the user's locale information
 on GetUserLocale()
+	local user_locale
+
 	try
 		set user_locale to user locale of (system info)
 	on error
@@ -160,6 +218,9 @@ end GetUserLocale
 
 -- Get character encoding for AES Crypt (User's locale + UTF-8)
 on GetCharacterEncoding()
+	local locale_list
+	local user_locale
+
 	try
 		-- Get the list of locales
 		set locale_list to do shell script "locale -a"
@@ -189,15 +250,24 @@ end GetCharacterEncoding
 
 -- Perform encryption or decryption operations
 on PerformOperations(mode, file_list, password)
+	local user_locale
+	local script_location
+	local aescrypt
+	local pw
+	local file_list_item
+	local file_path
+
 	-- Determine the locale to use
 	set user_locale to GetCharacterEncoding()
 	if user_locale is equal to "" then
-		ReportError("Unable to determine a suitable character encoding. Contact support for assistance. (" & GetUserLocale() & ")")
+		ReportError("Unable to determine a suitable character encoding. " & ¬
+		            "Contact support for assistance. (" & GetUserLocale() & ")")
 		return
 	end if
 
 	set script_location to (path to me) as text
-	set aescrypt to quoted form of (POSIX path of (script_location & "Contents:MacOS:aescrypt"))
+	set aescrypt to quoted form of ( ¬
+		POSIX path of (script_location & "Contents:MacOS:aescrypt"))
 
 	-- We must use a quoted form of the password
 	set pw to quoted form of password
@@ -206,7 +276,9 @@ on PerformOperations(mode, file_list, password)
 		-- Iterate over each file, encrypting or decrypting, stopping on any error
 		repeat with file_list_item in file_list
 			set file_path to quoted form of (POSIX path of file_list_item)
-			do shell script ("LANG=" & user_locale & space & aescrypt & " -q -" & mode & " -p " & pw & space & file_path)
+			do shell script ( ¬
+				"LANG=" & user_locale & space & aescrypt & ¬
+				" -q -" & mode & " -p " & pw & space & file_path)
 		end repeat
 	on error e
 		ReportError(e as text)
