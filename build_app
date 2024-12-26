@@ -13,6 +13,7 @@
 
 # Specify which version of AES Crypt to build (git tag)
 AES_CRYPT_VERSION=v4.1.2
+BUILD_NUMBER=2
 
 # Set the root of the Terrapane source repositories
 if [ -z "${TERRAPANE_SOURCE_URI}" ] ; then
@@ -22,6 +23,14 @@ fi
 aescrypt_repo="${TERRAPANE_SOURCE_URI}/aescrypt_cli.git"
 aescrypt_app="../AES Crypt.app"
 aescrypt_binary="build/aescrypt_cli/build/src/aescrypt"
+
+# Derive the full release/build information to insert into the plist
+AES_CRYPT_RELEASE=${AES_CRYPT_VERSION#v}
+if [ -n "$BUILD_NUMBER" ] ; then
+    AES_CRYPT_RELEASE=${AES_CRYPT_RELEASE}.${BUILD_NUMBER}
+else
+    AES_CRYPT_RELEASE=${AES_CRYPT_RELEASE}.0
+fi
 
 # Switch directories to where this script resides
 cd $( dirname "${BASH_SOURCE[0]}" ) || exit
@@ -85,8 +94,8 @@ fi
 # Notify user that files are being put in place
 echo Updating the application...
 
-# Copy the plist file into place
-cat src/Info.plist.template | sed s/AESCRYPT_VERSION_TAG/${AES_CRYPT_VERSION#v}/ > "$aescrypt_app"/Contents/Info.plist || exit
+# Copy the plist file into place, replacing the version tag
+cat src/Info.plist.template | sed s/AESCRYPT_VERSION_TAG/${AES_CRYPT_RELEASE}/ > "$aescrypt_app"/Contents/Info.plist || exit
 
 # Put the application icons into place
 cp resources/aescrypt_lock.icns "$aescrypt_app"/Contents/Resources/droplet.icns || exit
