@@ -23,6 +23,11 @@
 				<array>
 					<string>aes</string>
 				</array>
+				<key>public.mime-type</key>
+				<array>
+					<string>application/aescrypt</string>
+					<string>application/aes</string>
+				</array>
 			</dict>
 		</dict>
 	</array>
@@ -39,21 +44,48 @@
 			<array>
 				<string>*</string>
 			</array>
-			<key>CFBundleTypeOSTypes</key>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSItemContentTypes</key>
 			<array>
-				<string>****</string>
+				<string>public.data</string>
+				<string>public.item</string>
+				<string>public.content</string>
+				<string>public.text</string>
+				<string>public.image</string>
+				<string>public.audio</string>
+				<string>public.video</string>
+				<string>public.archive</string>
+				<string>public.font</string>
+				<string>public.executable</string>
+				<string>public.source</string>
+			</array>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Unregistered or Dynamic File Types</string>
+			<key>CFBundleTypeExtensions</key>
+			<array>
+				<string>bak</string>
+				<string>bat</string>
+				<string>cmake</string>
+				<string>cmd</string>
+				<string>config</string>
+				<string>cs</string>
+				<string>ini</string>
+				<string>rs</string>
+				<string>sql</string>
 			</array>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
 		</dict>
 		<dict>
 			<key>CFBundleTypeName</key>
 			<string>AES Crypt Document</string>
-			<key>CFBundleTypeMIMETypes</key>
-			<array>
-				<string>application/aescrypt</string>
-				<string>application/aes</string>
-			</array>
 			<key>CFBundleTypeIconFile</key>
 			<string>aescrypt_paper</string>
 			<key>CFBundleTypeExtensions</key>
@@ -62,10 +94,16 @@
 			</array>
 			<key>CFBundleTypeOSTypes</key>
 			<array>
-				<string>****</string>
+				<string>AESC</string>
 			</array>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.terrapane.aescrypt-document</string>
+			</array>
 		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
@@ -86,16 +124,18 @@
 	<string>dplt</string>
 	<key>SMPrivilegedExecutables</key>
 	<dict>
-		<key>com.terrapane.aescrypt</key>
+		<key>com.terrapane.aescrypt-cli</key>
 		<string>Contents/MacOS/aescrypt</string>
 	</dict>
 	<key>LSMinimumSystemVersionByArchitecture</key>
 	<dict>
 		<key>x86_64</key>
-		<string>10.7</string>
+		<string>10.15</string>
+		<key>arm64</key>
+		<string>10.15</string>
 	</dict>
 	<key>LSRequiresCarbon</key>
-	<true/>
+	<false/>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>This script needs to control other applications to run.</string>
 	<key>NSAppleMusicUsageDescription</key>
