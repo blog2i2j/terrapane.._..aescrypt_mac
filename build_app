@@ -96,6 +96,7 @@ echo Updating the application...
 
 # Copy the plist file into place, replacing the version tag
 cat src/Info.plist.template | sed s/AESCRYPT_VERSION_TAG/${AES_CRYPT_RELEASE}/ > "$aescrypt_app"/Contents/Info.plist || exit
+plutil -convert binary1 "$aescrypt_app"/Contents/Info.plist || exit
 
 # Put the application icons into place
 cp resources/aescrypt_lock.icns "$aescrypt_app"/Contents/Resources/droplet.icns || exit

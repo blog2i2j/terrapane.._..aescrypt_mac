@@ -63,6 +63,7 @@
 			<key>LSHandlerRank</key>
 			<string>Alternate</string>
 		</dict>
+		<!-- Associating with certain extensions can be misleading; so do not
 		<dict>
 			<key>CFBundleTypeName</key>
 			<string>Unregistered or Dynamic File Types</string>
@@ -83,6 +84,7 @@
 			<key>LSHandlerRank</key>
 			<string>Alternate</string>
 		</dict>
+		-->
 		<dict>
 			<key>CFBundleTypeName</key>
 			<string>AES Crypt Document</string>
