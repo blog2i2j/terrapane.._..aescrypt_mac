@@ -7,29 +7,29 @@
 
 -- Handler to run when the user opens AES Crypt
 on run
-	local files_to_process
+	local file_list
 
 	-- Ensure the application is brought to the front
 	activate
 
 	try
-		set files_to_process to choose file ¬
+		set file_list to choose file ¬
 			with prompt "Select file(s) to encrypt or decrypt" ¬
 			with multiple selections allowed
 	on error e number error_number
 		if error_number is -128 then
 			-- User pressed "Cancel"
-			set files_to_process to {}
+			set file_list to {}
 		else
 			-- All other errors will render a message
-			ReportError("An error occurred: " & (e as text))
-			set files_to_process to {}
+			MessageDialog("An error occurred: " & (e as text))
+			set file_list to {}
 		end if
 	end try
 
-	-- If the user selected a file, process it
-	if (count of files_to_process) is not 0 then
-		open(files_to_process)
+	-- If the user selected one or more files, process the file(s)
+	if (count of file_list) is not 0 then
+		open(file_list)
 	end if
 end run
 
@@ -44,7 +44,7 @@ on open(file_list)
 	try
 		-- Ensure that all items dropped are files
 		if not VerifyFiles(file_list) then
-			ReportError("Only regular files can be processed.")
+			MessageDialog("Only regular files can be processed.")
 			return
 		end if
 
@@ -63,12 +63,12 @@ on open(file_list)
 		-- Iterate over all files, encrypting or decrypting as appropriate
 		PerformOperations(mode, file_list, user_password)
 	on error e
-		ReportError("Unexpected error: " & (e as text))
+		MessageDialog("Unexpected error: " & (e as text))
 	end try
 end open
 
--- Report errors to the user
-on ReportError(message)
+-- Show a message dialog window to the user having the specified message
+on MessageDialog(message)
 	local script_location
 	local icon_file
 
@@ -80,7 +80,7 @@ on ReportError(message)
 		buttons "OK" ¬
 		default button "OK" ¬
 		with icon file icon_file
-end ReportError
+end MessageDialog
 
 -- Ensure all of the given names are regular files
 on VerifyFiles(file_list)
@@ -120,8 +120,8 @@ on DetermineOperationalMode(file_list)
 	end repeat
 
 	if normal_files is true and aes_files is true then
-		ReportError("Cannot process both AES Crypt and non-AES Crypt files " & ¬
-		            "at the same time.")
+		MessageDialog("Cannot process both AES Crypt and non-AES Crypt " & ¬
+		              "files at the same time.")
 		return ""
 	end if
 
@@ -161,13 +161,13 @@ on PasswordDialog(message)
 				exit repeat
 			else
 				-- All other errors will render a message
-				ReportError("An error occurred: " & (e as text))
+				MessageDialog("An error occurred: " & (e as text))
 				set user_password to ""
 				exit repeat
 			end if
 		end try
 		if user_password is equal to "" then
-			ReportError("A password must be provided.")
+			MessageDialog("A password must be provided.")
 		end if
 	end repeat
 
@@ -209,7 +209,7 @@ on PromptPassword(mode)
 				exit repeat
 			end if
 			if verify_password is not equal to user_password then
-				ReportError("The passwords entered do not match.")
+				MessageDialog("The passwords entered do not match.")
 				set user_password to ""
 			end if
 		end if
@@ -275,8 +275,9 @@ on PerformOperations(mode, file_list, password)
 	-- Determine the locale to use
 	set user_locale to GetCharacterEncoding()
 	if user_locale is equal to "" then
-		ReportError("Unable to determine a suitable character encoding. " & ¬
-		            "Contact support for assistance. (" & GetUserLocale() & ")")
+		MessageDialog("Unable to determine a suitable character encoding. " & ¬
+					  "Contact support for assistance. (" & ¬
+					  GetUserLocale() & ")")
 		return
 	end if
 
@@ -288,7 +289,7 @@ on PerformOperations(mode, file_list, password)
 	set pw to quoted form of password
 
 	try
-		-- Iterate over each file, encrypting or decrypting, stopping on any error
+		-- Iterate over each file, encrypting or decrypting
 		repeat with file_list_item in file_list
 			set file_path to quoted form of (POSIX path of file_list_item)
 			do shell script ( ¬
@@ -296,13 +297,13 @@ on PerformOperations(mode, file_list, password)
 				" -q -" & mode & " -p " & pw & space & file_path)
 		end repeat
 	on error e
-		ReportError(e as text)
+		MessageDialog(e as text)
 		return
 	end try
 
 	if mode is equal to "e" then
-		ReportError("File(s) were encrypted successfully.")
+		MessageDialog("File(s) were encrypted successfully.")
 	else
-		ReportError("File(s) were decrypted successfully.")
+		MessageDialog("File(s) were decrypted successfully.")
 	end if
 end PerformOperations
