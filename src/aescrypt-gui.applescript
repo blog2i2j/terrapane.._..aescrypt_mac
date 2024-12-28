@@ -5,20 +5,35 @@
 -- Author: Paul E. Jones <paulej@packetizer.com>
 --
 
--- Handler to run when the user attempts to open the app without presenting files
+-- Handler to run when the user opens AES Crypt
 on run
+	local files_to_process
+
 	-- Ensure the application is brought to the front
 	activate
 
-	-- Report that one cannot open the application without a file list
-	ReportError("To encrypt or decrypt files with AES Crypt, drag and drop " & ¬
-				"files onto application lock icon. You may place the lock " & ¬
-				"icon on the dock for convenience. Alternatively, right-" & ¬
-				"click on a file and select \"Open With\" and choose " & ¬
-				"\"AES Crypt\".")
+	try
+		set files_to_process to choose file ¬
+			with prompt "Select file(s) to encrypt or decrypt" ¬
+			with multiple selections allowed
+	on error e number error_number
+		if error_number is -128 then
+			-- User pressed "Cancel"
+			set files_to_process to {}
+		else
+			-- All other errors will render a message
+			ReportError("An error occurred: " & (e as text))
+			set files_to_process to {}
+		end if
+	end try
+
+	-- If the user selected a file, process it
+	if (count of files_to_process) is not 0 then
+		open(files_to_process)
+	end if
 end run
 
--- Handler to run when files are dropped on to the lock icon
+-- Handler to run when processing files (either from on run() or drag/drop)
 on open(file_list)
 	local mode
 	local user_password

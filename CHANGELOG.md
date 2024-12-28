@@ -1,5 +1,10 @@
 # Change Log
 
+v4.1.2.3
+
+- Allow one to select a files to encrypt or decrypt when AES Crypt is opened
+  and not having files dropped on the lock icon
+
 v4.1.2.2
 
 - Made some improvements to the password dialog logic
