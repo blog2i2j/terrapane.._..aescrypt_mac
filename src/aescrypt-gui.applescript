@@ -28,7 +28,7 @@ on run
 	end try
 
 	-- If the user selected one or more files, process the file(s)
-	if (count of file_list) is not 0 then
+	if count of file_list is greater than 0 then
 		open(file_list)
 	end if
 end run
@@ -69,17 +69,11 @@ end open
 
 -- Show a message dialog window to the user having the specified message
 on MessageDialog(message)
-	local script_location
-	local icon_file
-
-	set script_location to (path to me) as text
-	set icon_file to script_location & "Contents:Resources:aescrypt_lock.icns"
-
 	display dialog message ¬
 		with title "AES Crypt" ¬
 		buttons "OK" ¬
 		default button "OK" ¬
-		with icon file icon_file
+		with icon file (path to resource "aescrypt_lock.icns")
 end MessageDialog
 
 -- Ensure all of the given names are regular files
@@ -136,12 +130,8 @@ end DetermineOperationalMode
 -- Render the password dialog with the given message, returning the an empty
 -- string on error or if the user presses "Cancel"
 on PasswordDialog(message)
-	local script_location
-	local icon_file
 	local user_password
 
-	set script_location to (path to me) as text
-	set icon_file to script_location & "Contents:Resources:aescrypt_lock.icns"
 	set user_password to ""
 
 	-- Repeatedly prompt for a password until provided or "Cancel" is pressed
@@ -152,7 +142,7 @@ on PasswordDialog(message)
 				default answer "" ¬
 				buttons {"Cancel", "OK"} ¬
 				default button "OK" ¬
-				with icon file icon_file ¬
+				with icon file (path to resource "aescrypt_lock.icns") ¬
 				with hidden answer)
 		on error e number error_number
 			if error_number is -128 then
@@ -161,7 +151,7 @@ on PasswordDialog(message)
 				exit repeat
 			else
 				-- All other errors will render a message
-				MessageDialog("An error occurred: " & (e as text))
+				MessageDialog("Error prompting for password: " & (e as text))
 				set user_password to ""
 				exit repeat
 			end if
@@ -176,14 +166,11 @@ end PasswordDialog
 
 -- Prompts the user for a password, returning "" if the user clicks "Cancel"
 on PromptPassword(mode)
-	local script_location
-	local icon_file
 	local user_password
 	local verify_password
 
-	set script_location to (path to me) as text
-	set icon_file to script_location & "Contents:Resources:aescrypt_lock.icns"
 	set user_password to ""
+	set verify_password to ""
 
 	-- Loop until a password is acquired or user cancels the password prompt
 	repeat while user_password is ""
@@ -266,7 +253,6 @@ end GetCharacterEncoding
 -- Perform encryption or decryption operations
 on PerformOperations(mode, file_list, password)
 	local user_locale
-	local script_location
 	local aescrypt
 	local pw
 	local file_list_item
@@ -281,9 +267,8 @@ on PerformOperations(mode, file_list, password)
 		return
 	end if
 
-	set script_location to (path to me) as text
 	set aescrypt to quoted form of ( ¬
-		POSIX path of (script_location & "Contents:MacOS:aescrypt"))
+		POSIX path of ((path to me as text) & "Contents:MacOS:aescrypt"))
 
 	-- We must use a quoted form of the password
 	set pw to quoted form of password
