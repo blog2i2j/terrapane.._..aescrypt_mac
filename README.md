@@ -1,7 +1,7 @@
 # AES Crypt for Mac
 
 This project is the "AES Crypt.app" package for Mac.  This project includes an
-AppleScript wrapper that invokes the AES Crypt binary.
+AppleScript launcher droplet that invokes the AES Crypt binary.
 
 ## Building
 
