@@ -4,6 +4,7 @@ v4.1.2.3
 
 - Allow one to select a files to encrypt or decrypt when AES Crypt is opened
   and not having files dropped on the lock icon
+- Show a progress dialog while files are encrypted or decrypted
 
 v4.1.2.2
 

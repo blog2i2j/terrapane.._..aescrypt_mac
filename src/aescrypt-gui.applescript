@@ -1,20 +1,32 @@
 --
 -- AES Crypt Launcher for Mac
--- Copyright (C) 2024
+-- Copyright (C) 2025
 -- Terrapane Corporation
 -- Author: Paul E. Jones <paulej@packetizer.com>
 --
 
+global stop_requested
+
+-- Initialize globals used by this script
+on InitializeGlobals()
+	global stop_requested
+
+	set stop_requested to false
+end InitializeGlobals
+
 -- Handler to run when the user opens AES Crypt
 on run
 	local file_list
+
+	-- Initialize the global variables
+	InitializeGlobals()
 
 	-- Ensure the application is brought to the front
 	activate
 
 	try
 		set file_list to choose file ¬
-			with prompt "Select file(s) to encrypt or decrypt" ¬
+			with prompt "Select file(s) to encrypt or decrypt with AES Crypt" ¬
 			with multiple selections allowed
 	on error e number error_number
 		if error_number is -128 then
@@ -29,12 +41,23 @@ on run
 
 	-- If the user selected one or more files, process the file(s)
 	if count of file_list is greater than 0 then
-		open(file_list)
+		InitiateFileProcessing(file_list)
 	end if
 end run
 
 -- Handler to run when processing files (either from on run() or drag/drop)
 on open(file_list)
+	-- Initialize the global variables
+	InitializeGlobals()
+
+	-- Given one or more files to processing, process the file(s)
+	if count of file_list is greater than 0 then
+		InitiateFileProcessing(file_list)
+	end if
+end open
+
+-- Prompt for password and then start processing files
+on InitiateFileProcessing(file_list)
 	local mode
 	local user_password
 
@@ -43,7 +66,7 @@ on open(file_list)
 
 	try
 		-- Ensure that all items dropped are files
-		if not VerifyFiles(file_list) then
+		if VerifyFiles(file_list) is false then
 			MessageDialog("Only regular files can be processed.")
 			return
 		end if
@@ -250,13 +273,253 @@ on GetCharacterEncoding()
 	return ""
 end GetCharacterEncoding
 
+-- Return a shortened pathname
+on ShortenedName(pathname, max_length)
+	local path_length
+
+	set path_length to length of pathname
+
+	if path_length is less than or equal to max_length
+		return pathname
+	end if
+
+	return "..." & text (path_length - max_length) through path_length of ¬
+	        pathname
+end ShortenedName
+
+-- Get a temporary file
+on GetTemporaryFilename()
+	local temporary_folder
+	local uuid
+
+	try
+		set temporary_folder to POSIX path of (path to temporary items as text)
+
+		set uuid_string to do shell script "uuidgen"
+	on error
+		return "/tmp/aescrypt.tmp." & ((random number from 0 to 100000) as text)
+	end try
+
+	return temporary_folder & "AES-" & uuid_string
+end GetTemporaryFilename
+
+-- Check to see if the specified file exists
+on DoesFileExist(pathname)
+	global stop_requested
+	local file_info
+	local file_exists
+
+	set file_exists to false
+
+	-- Attempt up to 1 second to check for file existence
+	-- (In practice, it should never take this long)
+	repeat with i from 1 to 10
+		try
+			set file_info to info for (POSIX file pathname)
+			set file_exists to true
+			exit repeat
+		on error e number error_number
+			if error_number is -128 then
+				-- User pressed cancel / stop
+				set stop_requested to true
+			else
+				-- Other error suggest the file does not exist
+				exit repeat
+			end if
+		end try
+	end repeat
+
+	return file_exists
+end DoesFileExist
+
+-- Remove the specified file
+on RemoveFile(pathname)
+	global stop_requested
+
+	-- If the file does not exist, we're done
+	if DoesFileExist(pathname) is false
+		return
+	end if
+
+	-- Attempt up to 1 second to remove the file
+	-- (In practice, it should never take this long)
+	repeat with i from 1 to 10
+		try
+			do shell script "rm -f " & quoted form of pathname
+			exit repeat
+		on error e number error_number
+			if error_number is -128 then
+				-- User pressed cancel / stop
+				set stop_requested to true
+			else
+				-- Some other error occurred, so exit
+				exit repeat
+			end if
+		end try
+	end repeat
+end RemoveFile
+
+-- Check to see if a file is empty
+on IsFileEmpty(pathname)
+	global stop_requested
+	local file_info
+
+	-- Attempt up to 1 second to check if a file is empty
+	-- (In practice, it should never take this long)
+	repeat with i from 1 to 10
+		try
+			set file_info to info for (POSIX file pathname)
+
+			return (size of file_info is 0)
+		on error e number error_number
+			if error_number is -128 then
+				-- User pressed cancel / stop
+				set stop_requested to true
+			else
+				-- Some other error occurred, so exit
+				exit repeat
+			end if
+		end try
+	end repeat
+
+	-- Assume the file is empty if we keep failing
+	return true
+end IsFileEmpty
+
+-- Read the contents of a file
+on ReadFileContent(pathname)
+	global stop_requested
+	local file_content
+
+	set file_content to ""
+
+	-- Attempt up to 1 second to read the file content
+	-- (In practice, it should never take this long)
+	repeat with i from 1 to 10
+		try
+			set file_content to do shell script "cat " & quoted form of pathname
+
+			if file_content ends with linefeed
+				set file_content to text 1 thru -2 of file_content
+			end if
+			exit repeat
+		on error e number error_number
+			if error_number is -128 then
+				-- User pressed cancel / stop
+				set stop_requested to true
+			else
+				-- Some other error occurred, so exit
+				exit repeat
+			end if
+		end try
+	end repeat
+
+	return file_content
+end ReadFileContent
+
+-- Check for running task
+on IsTaskRunning(task_id)
+	global stop_requested
+	local task_running
+	local task_check
+
+	set task_running to false
+
+	-- Attempt up to 1 second to check on the task status
+	-- (In practice, it should never take this long)
+	repeat with i from 1 to 10
+		try
+			set task_check to do shell script "ps -p " & ¬
+				quoted form of (task_id as text)
+			if task_check contains task_id then
+				set task_running to true
+			end if
+			exit repeat
+		on error e number error_number
+			if error_number is -128 then
+				-- User pressed cancel / stop
+				set stop_requested to true
+			else
+				-- Some other error occurred, so exit
+				exit repeat
+			end if
+		end try
+	end repeat
+
+	return task_running
+end IsTaskRunning
+
+-- Handler to kill running task
+on KillTask(task_id)
+	local retry_count
+
+	-- Attempt up to 1 second to kill the process before giving up
+	-- (In practice, it should never take this long)
+	repeat with i from 1 to 10
+		try
+			-- If the process is not running, break out of the loop
+			if IsTaskRunning(task_id) is false then
+				exit repeat
+			end if
+
+			-- Kill the task and delay termination
+			do shell script "kill -s INT " & quoted form of (task_id as text)
+			exit repeat
+		on error e number error_number
+			if error_number is -128 then
+				-- User pressed cancel / stop
+				set stop_requested to true
+			else
+				-- Some other error occurred, so exit
+				exit repeat
+			end if
+		end try
+	end repeat
+end KillTask
+
+-- Perform final cleanup
+on Cleanup(processing_error, task_id, error_file)
+	global stop_requested
+
+	-- Final message depends on whether the user pressed stop or cancel
+	if processing_error is true then
+		set progress description to "Cleaning up..."
+	else
+		if stop_requested is false then
+			set progress description to "Processing complete"
+		else
+			set progress description to "Stopping..."
+		end if
+	end if
+	set progress additional description to ""
+	delay 0.01
+
+	-- Terminate the running process, if one is running
+	if task_id is greater than 0 then
+		KillTask(task_id)
+	end if
+
+	-- Remove the temporary error file
+	RemoveFile(error_file)
+
+	-- Dismiss the progress indicator
+	set progress description to ""
+	set progress additional description to ""
+	set progress total steps to 0
+	set progress completed steps to 0
+end Cleanup
+
 -- Perform encryption or decryption operations
 on PerformOperations(mode, file_list, password)
+	global stop_requested
 	local user_locale
 	local aescrypt
-	local pw
 	local file_list_item
 	local file_path
+	local file_index
+	local current_task
+	local error_file
+	local processing_error
 
 	-- Determine the locale to use
 	set user_locale to GetCharacterEncoding()
@@ -267,28 +530,75 @@ on PerformOperations(mode, file_list, password)
 		return
 	end if
 
+	-- Initialize some local variables
 	set aescrypt to quoted form of ( ¬
 		POSIX path of ((path to me as text) & "Contents:MacOS:aescrypt"))
+	set error_file to GetTemporaryFilename()
+	set processing_error to false
+	set file_index to 0
+	set current_task to 0
 
-	-- We must use a quoted form of the password
-	set pw to quoted form of password
+	-- Initialize the progress indicator
+	set progress total steps to count of file_list
+	set progress completed steps to 0
+	if mode is "e" then
+		set progress description to "Encrypting files..."
+	else
+		set progress description to "Decrypting files..."
+	end if
+	set progress additional description to ""
 
 	try
 		-- Iterate over each file, encrypting or decrypting
 		repeat with file_list_item in file_list
-			set file_path to quoted form of (POSIX path of file_list_item)
-			do shell script ( ¬
-				"LANG=" & user_locale & space & aescrypt & ¬
-				" -q -" & mode & " -p " & pw & space & file_path)
-		end repeat
-	on error e
-		MessageDialog(e as text)
-		return
-	end try
+			set file_path to POSIX path of file_list_item
 
-	if mode is equal to "e" then
-		MessageDialog("File(s) were encrypted successfully.")
-	else
-		MessageDialog("File(s) were decrypted successfully.")
-	end if
+			-- Update the progress indicator
+			set progress additional description to ShortenedName(file_path, 64)
+			set file_index to file_index + 1
+			set progress completed steps to file_index
+
+			-- Launch AES Crypt as a background task
+			set current_task to do shell script ( ¬
+				"LANG=" & user_locale & " nohup " & aescrypt & ¬
+				" -q -" & mode & " -p " & quoted form of password & space & ¬
+				quoted form of file_path & " >/dev/null 2>" & ¬
+				quoted form of error_file & " & echo $!")
+
+			-- Wait for the AES Crypt process to complete
+			repeat
+				delay 0.05
+				if IsTaskRunning(current_task) is false or ¬
+				   stop_requested is true then
+					exit repeat
+				end if
+			end repeat
+
+			-- Task completed, so clear state and check for errors
+			set current_task to 0
+			if DoesFileExist(error_file) is true and ¬
+			   IsFileEmpty(error_file) is false then
+				set processing_error to true
+				MessageDialog(ReadFileContent(error_file))
+				exit repeat
+			end if
+
+			-- Was there a request to stop?
+			if stop_requested is true then
+				exit repeat
+			end if
+		end repeat
+
+		-- Perform final cleanup
+		Cleanup(processing_error, current_task, error_file)
+	on error e number error_number
+		if error_number is -128 then
+			-- User pressed cancel / stop
+			set stop_requested to true
+			Cleanup(processing_error, current_task, error_file)
+		else
+			MessageDialog(e as text)
+			Cleanup(processing_error, current_task, error_file)
+		end if
+	end try
 end PerformOperations
