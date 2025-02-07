@@ -1,5 +1,11 @@
 # Change Log
 
+v4.2.0
+
+- Updated dependencies (various libraries include several minor changes),
+  but more importantly is that the previous release was only published
+  for a few testers. So this represents a major update for all users.
+
 v4.1.2.3
 
 - Allow one to select a files to encrypt or decrypt when AES Crypt is opened
