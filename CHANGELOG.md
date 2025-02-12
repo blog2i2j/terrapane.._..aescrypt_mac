@@ -1,5 +1,10 @@
 # Change Log
 
+v4.2.1
+
+- This release is primarily focused on performance improvements on
+  Mac machines with Intel processors
+
 v4.2.0
 
 - Updated dependencies (various libraries include several minor changes),
