@@ -1,5 +1,10 @@
 # Change Log
 
+v4.2.2
+
+- Updated to version 4.2.2 of AES Crypt, which is primarily internal
+  library revisions
+
 v4.2.1
 
 - This release is primarily focused on performance improvements on
