@@ -1,5 +1,10 @@
 # Change Log
 
+v4.2.3
+
+- This release was primarily focused on reducing the size of the installed
+  application files.
+
 v4.2.2
 
 - Updated to version 4.2.2 of AES Crypt, which is primarily internal
