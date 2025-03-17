@@ -10,6 +10,9 @@
 #     build/aescrypt_cli/build/src/aescrypt - the AES Crypt executable
 #     ../AES Crypt.app - the application package created from the Script Editor
 #
+# Arguments may be passed to the script that become CMake arguments
+# for building.
+#
 
 # Specify which version of AES Crypt to build (git tag)
 AES_CRYPT_VERSION=v4.2.3
@@ -69,10 +72,10 @@ git clone --depth=1 --branch=$AES_CRYPT_VERSION --single-branch \
           $aescrypt_repo build/aescrypt_cli
 cd build/aescrypt_cli
 cmake -S . -B build \
-    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_BUILD_TYPE:STRING=Release \
     -DCMAKE_EXE_LINKER_FLAGS="-Wl,-no_warn_duplicate_libraries" \
     -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
-    ${TERRAPANE_AESCRYPT_BUILD_ARGS:+ "${TERRAPANE_AESCRYPT_BUILD_ARGS}"}
+    ${@+"$@"}
 cmake --build build --parallel
 cd ../..
 
