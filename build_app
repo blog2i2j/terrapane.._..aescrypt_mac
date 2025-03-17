@@ -15,7 +15,7 @@
 #
 
 # Specify which version of AES Crypt to build (git tag)
-AES_CRYPT_VERSION=v4.2.3
+AES_CRYPT_VERSION=v4.2.4
 BUILD_NUMBER=0
 
 # Set the root of the Terrapane source repositories

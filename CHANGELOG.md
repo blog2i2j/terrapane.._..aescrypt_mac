@@ -1,5 +1,10 @@
 # Change Log
 
+v4.2.4 (in progress)
+
+- More file size improvements
+- Updated various package dependencies in support of a FreeBSD build
+
 v4.2.3
 
 - This release was primarily focused on reducing the size of the installed
