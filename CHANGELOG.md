@@ -1,7 +1,8 @@
 # Change Log
 
-v4.2.4 (in progress)
+v4.3.0
 
+- Updated to latest AES Crypt engine, which brings performance improvements
 - More file size improvements
 - Updated various package dependencies in support of a FreeBSD build
 
