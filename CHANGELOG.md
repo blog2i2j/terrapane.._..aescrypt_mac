@@ -1,5 +1,9 @@
 # Change Log
 
+v4.3.1
+
+- Updated the AES Crypt CLI version to the latest
+
 v4.3.0
 
 - Updated to latest AES Crypt engine, which brings performance improvements
