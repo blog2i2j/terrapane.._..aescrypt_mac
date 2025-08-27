@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+# This script will create the Apple icons files for use with AES Crypt.
+# This is not run when the application is built since these static images do
+# not change, but the script exits here for convenience.
+#
+
+iconutil -c icns aescrypt_paper.iconset -o aescrypt_paper.icns
+iconutil -c icns aescrypt_lock.iconset -o aescrypt_lock.icns
