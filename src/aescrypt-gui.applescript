@@ -26,7 +26,7 @@ on run
 
 	try
 		set file_list to choose file ¬
-			with prompt "Select file(s) to encrypt or decrypt with AES Crypt" ¬
+			with prompt "AES Crypt (Select file(s) to encrypt or decrypt)" ¬
 			with multiple selections allowed
 	on error e number error_number
 		if error_number is -128 then
