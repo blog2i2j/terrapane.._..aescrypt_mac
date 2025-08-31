@@ -3,6 +3,7 @@
 v4.4.0
 
 - Updated the AES Crypt CLI version to the 4.4.0
+- Revised build options for a more compact binary
 
 v4.3.1
 
