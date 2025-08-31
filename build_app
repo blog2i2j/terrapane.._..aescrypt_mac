@@ -15,7 +15,7 @@
 #
 
 # Specify which version of AES Crypt to build (git tag)
-AES_CRYPT_VERSION=v4.3.1
+AES_CRYPT_VERSION=v4.4.0
 BUILD_NUMBER=0
 
 # Set the root of the Terrapane source repositories
@@ -38,7 +38,7 @@ fi
 # Switch directories to where this script resides
 cd $( dirname "${BASH_SOURCE[0]}" ) || exit
 
-# Ensure there isn't aleady an AES Crypt App file in the parent directory
+# Ensure there isn't already an AES Crypt App file in the parent directory
 if [ -e "$aescrypt_app" ] ; then
     echo "The AES Crypt application already exists in $aescrypt_app"
     exit
