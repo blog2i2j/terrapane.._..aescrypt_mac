@@ -140,5 +140,9 @@
 	<false/>
 	<key>OSAAppletShowStartupScreen</key>
 	<false/>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright (C) 2025 Terrapane Corporation</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.utilities</string>
 </dict>
 </plist>
