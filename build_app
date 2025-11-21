@@ -36,38 +36,38 @@ else
 fi
 
 # Switch directories to where this script resides
-cd $( dirname "${BASH_SOURCE[0]}" ) || exit
+cd $( dirname "${BASH_SOURCE[0]}" ) || exit 1
 
 # Ensure there isn't already an AES Crypt App file in the parent directory
 if [ -e "$aescrypt_app" ] ; then
     echo "The AES Crypt application already exists in $aescrypt_app"
-    exit
+    exit 1
 fi
 
 # Ensure cmake is installed
 which cmake >/dev/null 2>/dev/null || {
     echo cmake is not install, but is required
-    exit
+    exit 1
 }
 
 # Ensure make is installed
 which make >/dev/null 2>/dev/null || {
     echo make is not install, but is required
-    exit
+    exit 1
 }
 
 # Ensure git is installed
 which git >/dev/null 2>/dev/null || {
     echo git is not install, but is required
-    exit
+    exit 1
 }
 
 # Build the AES Crypt executable
 if [ -d build ] ; then
     echo "The ./build directory exists; remove it"
-    exit
+    exit 1
 fi
-mkdir -p build || exit
+mkdir -p build || exit 1
 git clone --depth=1 --branch=$AES_CRYPT_VERSION --single-branch \
           $aescrypt_repo build/aescrypt_cli
 cd build/aescrypt_cli
@@ -84,33 +84,33 @@ cd ../..
 if [ ! -f "$aescrypt_binary" ] ; then
     echo "The AES Crypt CLI application did not appear to build"
     rm -fr build
-    exit
+    exit 1
 fi
 
 # Compile the application
-osacompile -o "$aescrypt_app" src/aescrypt-gui.applescript || exit
+osacompile -o "$aescrypt_app" src/aescrypt-gui.applescript || exit 1
 
 # Ensure the AES Crypt App was created
 if [ ! -e "$aescrypt_app" ] ; then
     echo "The AES Crypt application failed to build in $aescrypt_app"
     rm -fr build
-    exit;
+    exit 1
 fi
 
 # Notify user that files are being put in place
 echo Updating the application...
 
 # Copy the plist file into place, replacing the version tag
-cat src/Info.plist.template | sed s/AESCRYPT_VERSION_TAG/${AES_CRYPT_RELEASE}/ > "$aescrypt_app"/Contents/Info.plist || exit
-plutil -convert binary1 "$aescrypt_app"/Contents/Info.plist || exit
+cat src/Info.plist.template | sed s/AESCRYPT_VERSION_TAG/${AES_CRYPT_RELEASE}/ > "$aescrypt_app"/Contents/Info.plist || exit 1
+plutil -convert binary1 "$aescrypt_app"/Contents/Info.plist || exit 1
 
 # Put the application icons into place
-cp resources/aescrypt_lock.icns "$aescrypt_app"/Contents/Resources/droplet.icns || exit
-cp resources/aescrypt_lock.icns "$aescrypt_app"/Contents/Resources/ || exit
-cp resources/aescrypt_paper.icns "$aescrypt_app"/Contents/Resources/ || exit
+cp resources/aescrypt_lock.icns "$aescrypt_app"/Contents/Resources/droplet.icns || exit 1
+#cp resources/aescrypt_lock.icns "$aescrypt_app"/Contents/Resources/ || exit 1
+cp resources/aescrypt_paper.icns "$aescrypt_app"/Contents/Resources/ || exit 1
 
 # Put the AES Crypt binary into place
-cp $aescrypt_binary "$aescrypt_app"/Contents/MacOS/ || exit
+cp $aescrypt_binary "$aescrypt_app"/Contents/MacOS/ || exit 1
 rm -fr build
 
 echo The application package has been updated
