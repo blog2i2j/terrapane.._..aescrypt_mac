@@ -16,7 +16,7 @@
 
 # Specify which version of AES Crypt to build (git tag)
 AES_CRYPT_VERSION=v4.4.0
-BUILD_NUMBER=0
+BUILD_NUMBER=1
 
 # Set the root of the Terrapane source repositories
 if [ -z "${TERRAPANE_SOURCE_URI}" ] ; then
@@ -105,12 +105,13 @@ cat src/Info.plist.template | sed s/AESCRYPT_VERSION_TAG/${AES_CRYPT_RELEASE}/ >
 plutil -convert binary1 "$aescrypt_app"/Contents/Info.plist || exit 1
 
 # Put the application icons into place
-cp resources/aescrypt_lock.icns "$aescrypt_app"/Contents/Resources/droplet.icns || exit 1
-#cp resources/aescrypt_lock.icns "$aescrypt_app"/Contents/Resources/ || exit 1
-cp resources/aescrypt_paper.icns "$aescrypt_app"/Contents/Resources/ || exit 1
+iconutil -c icns resources/app_icon.iconset -o "$aescrypt_app"/Contents/Resources/droplet.icns || exit 1
+iconutil -c icns resources/aescrypt_paper.iconset -o "$aescrypt_app"/Contents/Resources/aescrypt_paper.icns || exit 1
+iconutil -c icns resources/aescrypt_lock.iconset -o "$aescrypt_app"/Contents/Resources/aescrypt_lock.icns || exit 1
 
 # Put the AES Crypt binary into place
 cp $aescrypt_binary "$aescrypt_app"/Contents/MacOS/ || exit 1
 rm -fr build
 
 echo The application package has been updated
+
